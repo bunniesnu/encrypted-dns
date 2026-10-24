@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { DnsProfile } from "./data/profiles";
 
-const BASE_URL = "https://your-worker-or-r2.example.com";
+const BASE_URL = `${import.meta.env.VITE_CDN_URL}/profiles`;
 
 function ProfileCard({ profile }: { profile: DnsProfile }) {
   return (
