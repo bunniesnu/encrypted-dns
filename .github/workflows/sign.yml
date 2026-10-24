@@ -1,4 +1,4 @@
-name: Sign
+name: DNS renewal and signing pipeline
 
 on:
   workflow_dispatch:
