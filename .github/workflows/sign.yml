@@ -102,3 +102,17 @@ jobs:
           DOMAIN: ${{ secrets.DOMAIN }}
         run: |
           uv run scripts/build.py
+
+      - name: Upload signed profiles to AWS S3 compatible storage
+        env:
+          AGE_RECIPIENT: ${{ secrets.AGE_RECIPIENT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          AWS_ENDPOINT_URL: ${{ secrets.AWS_ENDPOINT_URL }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws s3 sync out/ "s3://$AWS_BUCKET_NAME/profiles/" \
+            --endpoint-url "$AWS_ENDPOINT_URL" \
+            --exclude "*" \
+            --include "*.mobileconfig" \
+            --delete
