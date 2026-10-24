@@ -24,5 +24,6 @@ aws s3 sync out/ "s3://$AWS_BUCKET_NAME/profiles/" \
   --endpoint-url "$AWS_ENDPOINT_URL" \
   --exclude "*" \
   --include "*.mobileconfig" \
+  --include "providers.json" \
   --delete \
   --dryrun
