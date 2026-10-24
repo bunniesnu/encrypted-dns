@@ -8,6 +8,11 @@ jobs:
     runs-on: ubuntu-26.04
 
     steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -88,3 +93,12 @@ jobs:
         run: |
           tar -cz -C ./certbot config | age -r "$AGE_RECIPIENT" -o certbot.tar.gz.enc
           aws s3 cp --endpoint-url "$AWS_ENDPOINT_URL" certbot.tar.gz.enc s3://$AWS_BUCKET_NAME/certbot.tar.gz.enc
+
+      - name: Set up Python
+        run: uv sync --frozen --no-install-project --no-editable
+
+      - name: Build and sign configuration profiles
+        env:
+          DOMAIN: ${{ secrets.DOMAIN }}
+        run: |
+          uv run scripts/build.py
