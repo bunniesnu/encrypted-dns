@@ -1,0 +1,15 @@
+{
+    "id": "cloudflare-default",
+    "name": "Cloudflare 1.1.1.1",
+    "description": "Configures device to use Cloudflare 1.1.1.1 over HTTPS\nOperated by Cloudflare Inc.\nServer location: 🇺🇸.\nFiltering: no",
+    "ips": [
+        "2606:4700:4700::1111",
+        "2606:4700:4700::1001",
+        "1.1.1.1",
+        "1.0.0.1"
+    ],
+    "https": "https://cloudflare-dns.com/dns-query",
+    "tls": "one.one.one.one",
+    "uuid1": "e8fcfcc4-88c2-4555-b4bb-b30877b7a516",
+    "uuid2": "919c9dab-fcbf-4022-b8b0-59a7d15b6b13"
+}
