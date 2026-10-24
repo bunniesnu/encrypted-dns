@@ -77,7 +77,11 @@ def _save_signed_profile(signed_der: bytes, output_path: Path):
     output_path.write_bytes(signed_der)
 
 
+output_dir = Path("out")
+
+
 def main():
+    output_dir.mkdir(exist_ok=True, parents=True)
     domain = os.getenv("DOMAIN")
     if not domain:
         raise ValueError("DOMAIN environment variable is not set")
@@ -128,7 +132,7 @@ def main():
 
             xml_bytes = _generate_config(p)
             signed_der = _sign_config(xml_bytes, cert, key, chain)
-            _save_signed_profile(signed_der, Path(f"out/{m.id}-{sub.DNSProtocol.lower()}.mobileconfig"))
+            _save_signed_profile(signed_der, output_dir / f"{m.id}-{sub.DNSProtocol.lower()}.mobileconfig")
 
 
 if __name__ == "__main__":
