@@ -1,0 +1,15 @@
+{
+    "id": "adguard-default",
+    "name": "Adguard DNS",
+    "description": "Configures device to use Adguard DNS over HTTPS\nOperated by Adguard Software Limited.\nFiltering: yes",
+    "ips": [
+        "2a10:50c0::ad1:ff",
+        "2a10:50c0::ad2:ff",
+        "94.140.14.14",
+        "94.140.15.15"
+    ],
+    "https": "https://dns.adguard-dns.com/dns-query",
+    "tls": "dns.adguard-dns.com",
+    "uuid1": "fc5c6761-cfc1-4a55-ba64-c0964ddb42c5",
+    "uuid2": "97e1bd63-6a13-4b0d-b274-233d0a28b73e"
+}
