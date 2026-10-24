@@ -1,0 +1,90 @@
+name: Sign
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-26.04
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y certbot python3-certbot-dns-cloudflare awscli age
+
+      - name: Restore certificates from Cloudflare R2
+        env:
+          AGE_SECRET_KEY: ${{ secrets.AGE_SECRET_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          AWS_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p certbot
+          if aws s3 cp --endpoint-url "$AWS_ENDPOINT_URL" s3://$AWS_BUCKET_NAME/certbot.tar.gz.enc certbot.tar.gz.enc; then
+            age -d -i <(printf '%s\n' "$AGE_SECRET_KEY") certbot.tar.gz.enc | tar -xz -C ./certbot
+          fi
+
+      - name: Check certificate expiration
+        id: check-cert
+        env:
+          DOMAIN: ${{ secrets.DOMAIN }}
+        run: |
+          CERT_FILE="./certbot/config/live/$DOMAIN/cert.pem"
+          RENEW_WINDOW_SECONDS=2592000 # 30 days
+
+          if [ -f "$CERT_FILE" ] && openssl x509 -checkend "$RENEW_WINDOW_SECONDS" -noout -in "$CERT_FILE"; then
+            echo "Certificate valid for > 30 days. Skipping renewal."
+            echo "renew_needed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Certificate missing or expiring soon. Renewal needed."
+            echo "renew_needed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Renew / Issue Certificate (DNS-01)
+        if: steps.check-cert.outputs.renew_needed == 'true'
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN }}
+          DOMAIN: ${{ secrets.DOMAIN }}
+          EMAIL: ${{ secrets.EMAIL }}
+        run: |
+          mkdir -p ~/.secrets/certbot
+          printf "dns_cloudflare_api_token = %s\n" "$CF_API_TOKEN" > ~/.secrets/certbot/cloudflare.ini
+          chmod 600 ~/.secrets/certbot/cloudflare.ini
+
+          if [ -d "./certbot/config/live/$DOMAIN" ]; then
+            certbot renew \
+              --dns-cloudflare \
+              --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini \
+              --dns-cloudflare-propagation-seconds 30 \
+              --config-dir ./certbot/config \
+              --work-dir ./certbot/work \
+              --logs-dir ./certbot/logs \
+              --non-interactive
+          else
+            certbot certonly \
+              --dns-cloudflare \
+              --dns-cloudflare-credentials ~/.secrets/certbot/cloudflare.ini \
+              --dns-cloudflare-propagation-seconds 30 \
+              --email "$EMAIL" \
+              --agree-tos \
+              --no-eff-email \
+              --non-interactive \
+              -d "$DOMAIN" \
+              --config-dir ./certbot/config \
+              --work-dir ./certbot/work \
+              --logs-dir ./certbot/logs
+          fi
+
+      - name: Save certificates to Cloudflare R2
+        if: steps.check-cert.outputs.renew_needed == 'true'
+        env:
+          AGE_RECIPIENT: ${{ secrets.AGE_RECIPIENT }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          AWS_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        run: |
+          tar -cz -C ./certbot config | age -r "$AGE_RECIPIENT" -o certbot.tar.gz.enc
+          aws s3 cp --endpoint-url "$AWS_ENDPOINT_URL" certbot.tar.gz.enc s3://$AWS_BUCKET_NAME/certbot.tar.gz.enc
