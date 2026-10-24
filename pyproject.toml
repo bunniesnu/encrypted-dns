@@ -7,4 +7,11 @@ authors = [
     { name = "Bunniesnu", email = "bunniesnu@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "boto3>=1.43.118",
+]
+
+[dependency-groups]
+dev = [
+    "boto3-stubs[s3]>=1.43.118",
+]
