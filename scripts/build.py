@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import plistlib
@@ -55,8 +56,6 @@ DNSSettings = Union[HTTPSDNSSettings, TLSDNSSettings]
 
 class PayloadContent(BaseModel):
     DNSSettings: DNSSettings
-    PayloadDescription: str
-    PayloadDisplayName: str
     PayloadIdentifier: str
     PayloadType: Literal["com.apple.dnsSettings.managed"] = "com.apple.dnsSettings.managed"
     PayloadUUID: str
@@ -73,6 +72,15 @@ class Profile(BaseModel):
     PayloadType: Literal["Configuration"] = "Configuration"
     PayloadUUID: str
     PayloadVersion: int = 1
+
+class DnsEndpoint(BaseModel):
+    protocol: Literal["HTTPS", "TLS"]
+    filename: str
+
+class DnsProfile(BaseModel):
+    id: str
+    name: str
+    endpoints: list[DnsEndpoint]
 
 
 def _generate_config(profile: Profile) -> bytes:
@@ -103,6 +111,8 @@ output_dir = Path("out")
 
 def main():
     output_dir.mkdir(exist_ok=True, parents=True)
+    final_profiles: list[DnsProfile] = []
+    final_profiles_file = output_dir / "providers.json"
     domain = os.getenv("DOMAIN")
     if not domain:
         raise ValueError("DOMAIN environment variable is not set")
@@ -134,13 +144,14 @@ def main():
                     ServerName=m.tls,
                 ),
             )
+
+        uploaded_files: list[DnsEndpoint] = []
+        
         for sub in d:
             p = Profile(
                 PayloadContent=[
                     PayloadContent(
                         DNSSettings=sub,
-                        PayloadDescription=m.description,
-                        PayloadDisplayName=m.name,
                         PayloadIdentifier=f"com.apple.dnsSettings.managed.{m.uuid2.lower()}.payload",
                         PayloadUUID=m.uuid2.upper(),
                     ),
@@ -153,9 +164,24 @@ def main():
 
             xml_bytes = _generate_config(p)
             signed_der = _sign_config(xml_bytes, cert, key, chain)
-            _save_signed_profile(signed_der, output_dir / f"{m.id}-{sub.DNSProtocol.lower()}.mobileconfig")
+            filename = f"{m.id}-{sub.DNSProtocol.lower()}.mobileconfig"
+            _save_signed_profile(signed_der, output_dir / filename)
+            uploaded_files.append(
+                DnsEndpoint(
+                    protocol=sub.DNSProtocol,
+                    filename=filename,
+                ),
+            )
             logger.info(f"Generated signed profile for {m.id} ({sub.DNSProtocol})")
 
+        final_profile = DnsProfile(
+            id=m.id,
+            name=m.name,
+            endpoints=uploaded_files,
+        )
+        final_profiles.append(final_profile)
+
+    final_profiles_file.write_text(json.dumps([p.model_dump(exclude_none=True) for p in final_profiles], indent=2))
 
 if __name__ == "__main__":
     main()

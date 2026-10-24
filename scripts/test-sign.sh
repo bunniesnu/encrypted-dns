@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$0")/.." || exit 1
 
 if ! command -v aws &> /dev/null; then
   echo "Error: AWS CLI is not installed." >&2
@@ -24,5 +24,6 @@ aws s3 sync out/ "s3://$AWS_BUCKET_NAME/profiles/" \
   --endpoint-url "$AWS_ENDPOINT_URL" \
   --exclude "*" \
   --include "*.mobileconfig" \
+  --include "providers.json" \
   --delete \
   --dryrun

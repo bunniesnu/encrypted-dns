@@ -1,7 +1,7 @@
 {
     "id": "cloudflare-default",
     "name": "Cloudflare 1.1.1.1",
-    "description": "Configures device to use Cloudflare 1.1.1.1 over HTTPS\nOperated by Cloudflare Inc.\nServer location: 🇺🇸.\nFiltering: no",
+    "description": "Configures device to use Cloudflare 1.1.1.1 over HTTPS\nOperated by Cloudflare Inc.\nFiltering: no",
     "ips": [
         "2606:4700:4700::1111",
         "2606:4700:4700::1001",

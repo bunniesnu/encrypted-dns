@@ -117,6 +117,7 @@ jobs:
             --endpoint-url "$AWS_ENDPOINT_URL" \
             --exclude "*" \
             --include "*.mobileconfig" \
+            --include "providers.json" \
             --delete
 
       - name: Clean up temporary files and credentials

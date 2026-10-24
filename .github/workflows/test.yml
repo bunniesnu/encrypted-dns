@@ -53,6 +53,7 @@ jobs:
             --endpoint-url "$AWS_ENDPOINT_URL" \
             --exclude "*" \
             --include "*.mobileconfig" \
+            --include "providers.json" \
             --delete \
             --dryrun
 
