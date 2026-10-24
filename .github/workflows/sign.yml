@@ -1,6 +1,9 @@
 name: DNS renewal and signing pipeline
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
