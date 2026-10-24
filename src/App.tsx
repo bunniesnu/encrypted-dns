@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { PROFILES, type DnsProfile } from "./data/profiles";
+import { useEffect, useState } from "react";
+import type { DnsProfile } from "./data/profiles";
 
 const BASE_URL = "https://your-worker-or-r2.example.com";
 
@@ -34,16 +34,23 @@ function ProfileCard({ profile }: { profile: DnsProfile }) {
 }
 
 export default function App() {
+  const [profiles, setProfiles] = useState<DnsProfile[]>([]);
   const [query, setQuery] = useState("");
 
-  const filtered = PROFILES.filter((p) =>
+  useEffect(() => {
+    fetch(`${BASE_URL}/profiles.json`)
+      .then((res) => res.json())
+      .then(setProfiles);
+  }, []);
+
+  const filtered = profiles.filter((p) =>
     p.name.toLowerCase().includes(query.toLowerCase())
   );
 
   return (
     <main style={{ maxWidth: 480, margin: "0 auto", padding: 16, fontFamily: "sans-serif" }}>
       <header style={{ marginBottom: 20 }}>
-        <h1 style={{ margin: "0 0 8px", fontSize: 24 }}>iOS DNS Profiles</h1>
+        <h1 style={{ margin: "0 0 8px", fontSize: 24 }}>Bunniesnu iOS DNS Profiles</h1>
         <p style={{ color: "#64748b", margin: 0, fontSize: 14 }}>
           Download encrypted DNS profiles directly to iOS Safari.
         </p>
