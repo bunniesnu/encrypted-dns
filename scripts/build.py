@@ -1,4 +1,3 @@
-import json
 import os
 import plistlib
 from pathlib import Path
@@ -9,17 +8,13 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.serialization import pkcs7
 
 
-class SubConfig(BaseModel):
-    ServerURLOrName: str
-    signature: str
-
 class Config(BaseModel):
     id: str
     name: str
     description: str
     ips: list[str]
-    https: SubConfig | None = None
-    tls: SubConfig | None = None
+    https: str | None = None
+    tls: str | None = None
     uuid1: str
     uuid2: str
 
@@ -104,14 +99,14 @@ def main():
             d.append(
                 HTTPSDNSSettings(
                     ServerAddresses=m.ips,
-                    ServerURL=m.https.ServerURLOrName,
+                    ServerURL=m.https,
                 ),
             )
         if m.tls:
             d.append(
                 TLSDNSSettings(
                     ServerAddresses=m.ips,
-                    ServerName=m.tls.ServerURLOrName,
+                    ServerName=m.tls,
                 ),
             )
         for sub in d:
