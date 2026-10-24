@@ -13,13 +13,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y certbot python3-certbot-dns-cloudflare awscli age
 
-      - name: Restore certificates from Cloudflare R2
+      - name: Restore certificates from AWS S3 compatible storage
         env:
           AGE_SECRET_KEY: ${{ secrets.AGE_SECRET_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-          AWS_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          AWS_ENDPOINT_URL: ${{ secrets.AWS_ENDPOINT_URL }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           mkdir -p certbot
           if aws s3 cp --endpoint-url "$AWS_ENDPOINT_URL" s3://$AWS_BUCKET_NAME/certbot.tar.gz.enc certbot.tar.gz.enc; then
@@ -77,14 +77,14 @@ jobs:
               --logs-dir ./certbot/logs
           fi
 
-      - name: Save certificates to Cloudflare R2
+      - name: Save certificates to AWS S3 compatible storage
         if: steps.check-cert.outputs.renew_needed == 'true'
         env:
           AGE_RECIPIENT: ${{ secrets.AGE_RECIPIENT }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-          AWS_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
-          AWS_ENDPOINT_URL: ${{ secrets.R2_ENDPOINT_URL }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          AWS_ENDPOINT_URL: ${{ secrets.AWS_ENDPOINT_URL }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           tar -cz -C ./certbot config | age -r "$AGE_RECIPIENT" -o certbot.tar.gz.enc
           aws s3 cp --endpoint-url "$AWS_ENDPOINT_URL" certbot.tar.gz.enc s3://$AWS_BUCKET_NAME/certbot.tar.gz.enc
