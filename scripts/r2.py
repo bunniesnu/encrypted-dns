@@ -15,12 +15,13 @@ class AWSSettings(BaseSettings):
         extra="ignore",
     )
 
-def get_r2_client(settings: AWSSettings | None = None) -> S3Client:
-    cfg = settings or AWSSettings()
-    return boto3.client( # pyright: ignore[reportUnknownMemberType]
-        "s3",
-        endpoint_url=cfg.endpoint_url,
-        aws_access_key_id=cfg.access_key_id,
-        aws_secret_access_key=cfg.secret_access_key,
-        region_name=cfg.region_name,
-    )
+class R2Client:
+    def __init__(self, settings: AWSSettings | None = None):
+        self.settings = settings or AWSSettings()
+        self.client: S3Client = boto3.client( # pyright: ignore[reportUnknownMemberType]
+            "s3",
+            endpoint_url=self.settings.endpoint_url,
+            aws_access_key_id=self.settings.access_key_id,
+            aws_secret_access_key=self.settings.secret_access_key,
+            region_name=self.settings.region_name,
+        )
