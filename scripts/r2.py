@@ -1,12 +1,13 @@
 import boto3
 from mypy_boto3_s3 import S3Client
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class AWSSettings(BaseSettings):
-    access_key_id: str
-    bucket_name: str
-    endpoint_url: str
-    secret_access_key: str
+    access_key_id: str = Field(default=...)
+    bucket_name: str = Field(default=...)
+    endpoint_url: str = Field(default=...)
+    secret_access_key: str = Field(default=...)
     region_name: str = "auto"
 
     model_config = SettingsConfigDict(
@@ -16,7 +17,7 @@ class AWSSettings(BaseSettings):
 
 def get_r2_client(settings: AWSSettings | None = None) -> S3Client:
     cfg = settings or AWSSettings()
-    return boto3.client(
+    return boto3.client( # pyright: ignore[reportUnknownMemberType]
         "s3",
         endpoint_url=cfg.endpoint_url,
         aws_access_key_id=cfg.access_key_id,
