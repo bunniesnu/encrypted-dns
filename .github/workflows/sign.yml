@@ -119,3 +119,8 @@ jobs:
             --exclude "*" \
             --include "*.mobileconfig" \
             --delete
+
+      - name: Clean up temporary files and credentials
+        if: always()
+        run: |
+          rm -rf ./certbot ~/.secrets/certbot certbot.tar.gz.enc out
