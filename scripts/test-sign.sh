@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-cd "$(dirname "$0")" || exit 1
+cd "$(dirname "$0")/.." || exit 1
 
 if ! command -v aws &> /dev/null; then
   echo "Error: AWS CLI is not installed." >&2
