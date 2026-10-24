@@ -148,7 +148,7 @@ def main():
                 PayloadDescription=m.description,
                 PayloadDisplayName=m.name,
                 PayloadIdentifier=f"com.bunniesnu.apple-dns",
-                PayloadUUID=m.uuid2.upper(),
+                PayloadUUID=m.uuid1.upper(),
             )
 
             xml_bytes = _generate_config(p)
