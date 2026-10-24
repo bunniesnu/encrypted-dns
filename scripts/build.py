@@ -55,8 +55,6 @@ DNSSettings = Union[HTTPSDNSSettings, TLSDNSSettings]
 
 class PayloadContent(BaseModel):
     DNSSettings: DNSSettings
-    PayloadDescription: str
-    PayloadDisplayName: str
     PayloadIdentifier: str
     PayloadType: Literal["com.apple.dnsSettings.managed"] = "com.apple.dnsSettings.managed"
     PayloadUUID: str
@@ -139,8 +137,6 @@ def main():
                 PayloadContent=[
                     PayloadContent(
                         DNSSettings=sub,
-                        PayloadDescription=m.description,
-                        PayloadDisplayName=m.name,
                         PayloadIdentifier=f"com.apple.dnsSettings.managed.{m.uuid2.lower()}.payload",
                         PayloadUUID=m.uuid2.upper(),
                     ),
