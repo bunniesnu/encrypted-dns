@@ -38,7 +38,7 @@ export default function App() {
   const [query, setQuery] = useState("");
 
   useEffect(() => {
-    fetch(`${BASE_URL}/profiles.json`)
+    fetch(`${BASE_URL}/providers.json`)
       .then((res) => res.json())
       .then(setProfiles);
   }, []);
