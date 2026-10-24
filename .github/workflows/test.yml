@@ -1,0 +1,62 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-26.04
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli age
+
+      - name: Restore certificates from AWS S3 compatible storage
+        env:
+          AGE_SECRET_KEY: ${{ secrets.AGE_SECRET_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          AWS_ENDPOINT_URL: ${{ secrets.AWS_ENDPOINT_URL }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          mkdir -p certbot
+          if aws s3 cp --endpoint-url "$AWS_ENDPOINT_URL" s3://$AWS_BUCKET_NAME/certbot.tar.gz.enc certbot.tar.gz.enc; then
+            age -d -i <(printf '%s\n' "$AGE_SECRET_KEY") certbot.tar.gz.enc | tar -xz -C ./certbot
+          fi
+
+      - name: Set up Python
+        run: uv sync --frozen --no-install-project --no-editable
+
+      - name: Build and sign configuration profiles
+        env:
+          DOMAIN: ${{ secrets.DOMAIN }}
+        run: |
+          uv run scripts/build.py
+
+      - name: Dry-run uploading signed profiles to AWS S3 compatible storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          AWS_ENDPOINT_URL: ${{ secrets.AWS_ENDPOINT_URL }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws s3 sync out/ "s3://$AWS_BUCKET_NAME/profiles/" \
+            --endpoint-url "$AWS_ENDPOINT_URL" \
+            --exclude "*" \
+            --include "*.mobileconfig" \
+            --delete \
+            --dryrun
+
+      - name: Clean up temporary files and credentials
+        if: always()
+        run: |
+          rm -rf ./certbot certbot.tar.gz.enc out
