@@ -7,12 +7,7 @@ authors = [
     { name = "Bunniesnu", email = "bunniesnu@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = [
-    "boto3>=1.43.118",
-    "pydantic-settings>=2.16.1",
-]
+dependencies = []
 
 [dependency-groups]
-dev = [
-    "boto3-stubs[s3]>=1.43.118",
-]
+dev = []
