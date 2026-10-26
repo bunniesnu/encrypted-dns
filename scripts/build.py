@@ -154,13 +154,13 @@ def main():
                     PayloadContent(
                         DNSSettings=sub,
                         PayloadDisplayName=m.name,
-                        PayloadIdentifier=f"com.apple.dnsSettings.managed.{m.uuid2.lower()}.payload",
+                        PayloadIdentifier=f"com.apple.dnsSettings.managed.{m.id}.payload",
                         PayloadUUID=m.uuid2.upper(),
                     ),
                 ],
                 PayloadDescription=m.description,
                 PayloadDisplayName=m.name,
-                PayloadIdentifier=f"com.bunniesnu.apple-dns",
+                PayloadIdentifier=f"com.bunniesnu.apple-dns.{m.id}",
                 PayloadUUID=m.uuid1.upper(),
             )
 
