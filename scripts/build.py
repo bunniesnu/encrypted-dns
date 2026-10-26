@@ -68,6 +68,7 @@ class Profile(BaseModel):
     PayloadDescription: str
     PayloadDisplayName: str
     PayloadIdentifier: str
+    PayloadOrganization: str
     PayloadRemovalDisallowed: Literal[False] = False
     PayloadScope: Literal["System"] = "System"
     PayloadType: Literal["Configuration"] = "Configuration"
@@ -161,6 +162,7 @@ def main():
                 PayloadDescription=m.description,
                 PayloadDisplayName=m.name,
                 PayloadIdentifier=f"com.bunniesnu.apple-dns.{m.id}",
+                PayloadOrganization="Bunniesnu",
                 PayloadUUID=m.uuid1.upper(),
             )
 
